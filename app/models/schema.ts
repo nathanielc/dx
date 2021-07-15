@@ -1,21 +1,21 @@
 import {appSchema, tableSchema} from '@nozbe/watermelondb';
 
 export default appSchema({
-  version: 2,
+  version: 1,
   tables: [
     tableSchema({
-      name: 'weights',
+      name: 'spells',
       columns: [
-        {name: 'weight', type: 'number'},
+        {name: 'name', type: 'string'},
+        {name: 'school', type: 'string'},
         {name: 'created_at', type: 'number'},
-        {name: 'note', type: 'string', isOptional: true},
       ],
     }),
     tableSchema({
-      name: 'comments',
+      name: 'classes',
       columns: [
-        { name: 'post_id', type: 'string', isIndexed: true },
-        { name: 'body', type: 'string' },
+        {name: 'name', type: 'string'},
+        {name: 'created_at', type: 'number'},
       ],
     }),
   ],

@@ -1,10 +1,10 @@
 import {Model} from '@nozbe/watermelondb';
 import {field, readonly, date} from '@nozbe/watermelondb/decorators';
 
-export default class Weight extends Model {
-  static table = 'weights';
+export default class Spell extends Model {
+  static table = 'spells';
 
-  @field('note') note;
-  @field('weight') weight;
+  @field('name') name;
+  @field('school') school;
   @readonly @date('created_at') createdAt;
 }

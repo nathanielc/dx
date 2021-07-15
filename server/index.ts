@@ -1,7 +1,13 @@
-import {runPeer} from './peer/index';
-import {runHTTP} from './http/index';
+import {startPeer} from './peer/index';
+//import {runHTTP} from './http/index';
+import {startWS} from './ws/index';
 
 const main = async () => {
-    await Promise.all([runPeer(), runHTTP()]);
+    const peer = await startPeer();
+    const ws = startWS(peer.pubsub);
+    ws.on('close', async () => {
+        await peer.stop()
+        console.log('peer stopped')
+    });
 }
 main()

@@ -1,6 +1,11 @@
-export type Create = {
-    data: string,
-};
 export type Changes = {
-    created: Create[],
+    spells: {
+        created: any,
+        updated: any,
+        deleted: string[],
+    },
+};
+export type ChangeSet = {
+    changes: Changes,
+    timestamp: number,
 };

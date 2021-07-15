@@ -1,17 +1,21 @@
 import {Database} from '@nozbe/watermelondb';
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
 
-import Weight from './weight';
 import schema from './schema';
 import migrations from './migrations';
+
+import Spell from './spell'
+import Class from './class'
 
 const adapter = new SQLiteAdapter({
   schema,
   migrations,
 });
 
-export const database = new Database({
+const database = new Database({
   adapter,
-  modelClasses: [Weight],
+  modelClasses: [Spell, Class],
   actionsEnabled: true,
 });
+
+export default database;
