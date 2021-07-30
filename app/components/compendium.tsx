@@ -14,13 +14,12 @@ const indexList = ['Spells', 'Classes'];
 const Index = ({navigation}) => {
     return (
         <View>
-                {indexList.map((item) => <>
+                {indexList.map((item) => 
                     <List.Item
                         key={item}
                         title={item}
                         onPress={() => navigation.navigate(item)}
                     />
-                    </>
                 )}
         </View>
     );

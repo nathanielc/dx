@@ -1,8 +1,8 @@
 import React from 'react';
-import {View} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import withObservables from '@nozbe/with-observables'
 import { withDatabase } from '@nozbe/watermelondb/DatabaseProvider'
-import { Text, TextInput, Button} from 'react-native-paper';
+import { Text, TextInput, Button, FAB } from 'react-native-paper';
 import { useForm, Controller } from "react-hook-form";
 import { withEventsContext} from "./events";
 import { EditModal } from "./edit";
@@ -10,10 +10,10 @@ import { EditModal } from "./edit";
 
 const Spell = withEventsContext(({database, events, spell}) => {
   return (
-      <View>
-        <Text>Name: {spell.name}</Text>
-        <Text>School: {spell.school}</Text>
-        <EditModal form={<SpellForm database={database} events={events} spell={spell}/>}/>
+      <View key={spell.id}>
+        <Text key={spell.id}>Name: {spell.name}</Text>
+        <Text key={spell.id}>School: {spell.school}</Text>
+        <EditModal key={spell.id} form={<SpellForm database={database} events={events} spell={spell}/>}/>
       </View>
   );
 });
@@ -89,10 +89,24 @@ const EnhancedSpell = withObservables(['spell'], ({spell}) => ({
 const Spells = ({database, spells}) => {
   return (
       <View>
-        <Text>Spells</Text>
+        <Text>List of Spells</Text>
         {spells.map((spell) =>
             <EnhancedSpell key={spell.id} database={database} spell={spell}/>
         )}
+        <FAB
+          style={styles.fab}
+          small
+          icon="plus"
+          onPress={async () => {
+            await database.action(async () => {
+              console.log('here')
+              const newSpell = await database.get('spells').create((spell) => {
+                spell.name = 'New Spell'
+                spell.school = 'Lorem ipsum...'
+              })
+            })
+          }}
+        />
       </View>
   );
 };
@@ -100,3 +114,14 @@ const Spells = ({database, spells}) => {
 export default withDatabase(withObservables([], ({database}) => ({
     spells: database.collections.get('spells').query().observe(),
 }))(Spells));
+
+
+const styles = StyleSheet.create({
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    top: 0,
+  },
+})
+
