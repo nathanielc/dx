@@ -16,7 +16,7 @@ export const EditModal = ({form}) => {
            </Modal>
          </Portal>
          <Button onPress={showModal}>
-            Show
+            Edit
          </Button>
         </>
     );
