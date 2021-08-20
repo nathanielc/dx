@@ -37,7 +37,6 @@ const Bar = ({navigation}) => {
 const events = new Events(database);
 
 const App = () => {
-    console.log('new', events);
     return (
         <PaperProvider>
         <DatabaseProvider database={database}>

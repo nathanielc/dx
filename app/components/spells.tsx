@@ -6,14 +6,16 @@ import { Text, TextInput, Button, FAB } from 'react-native-paper';
 import { useForm, Controller } from "react-hook-form";
 import { withEventsContext} from "./events";
 import { EditModal } from "./edit";
+import {Model} from 'common/models/event';
+import {Spell as CSpell} from 'common/models/spell';
 
 
 const Spell = withEventsContext(({database, events, spell}) => {
   return (
       <View key={spell.id}>
-        <Text key={spell.id}>Name: {spell.name}</Text>
-        <Text key={spell.id}>School: {spell.school}</Text>
-        <EditModal key={spell.id} form={<SpellForm database={database} events={events} spell={spell}/>}/>
+        <Text>Name: {spell.name}</Text>
+        <Text>School: {spell.school}</Text>
+        <EditModal form={<SpellForm database={database} events={events} spell={spell}/>}/>
       </View>
   );
 });
@@ -22,7 +24,6 @@ const Spell = withEventsContext(({database, events, spell}) => {
 const SpellForm = ({database, events, spell}) => {
     const { control, handleSubmit, formState: { errors } } = useForm();
     const onSubmit = async (data) => {
-        console.log(data);
         data.id = spell.id;
         //TODO make events perform database updates and leave the forms unaware of the database
         await database.action(async () => {
@@ -31,7 +32,13 @@ const SpellForm = ({database, events, spell}) => {
                 spell.school = data.school;
             });
         });
-        events.publishEvent(data);
+        const spellModel : CSpell = {
+            id: data.id,
+            name: data.name,
+            school: data.school,
+        };
+        console.log("publishing event", spellModel)
+        events.publishEvent(spellModel.id, Model.Spell, spellModel);
     };
 
 

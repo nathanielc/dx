@@ -1,4 +1,5 @@
 import React from 'react';
+//import {ID, Model, Event} from 'common/models/event';
 
 // Create an EventsContext to allow edit forms to publish change events.
 const EventsContext = React.createContext({"events": "default"});
@@ -33,14 +34,19 @@ export class Events {
     readonly db: any;
     constructor(database: any) {
         this.ws = new WebSocket('ws://10.0.2.2:8888/')
-        this.ws.onopen = () => {
-            this.ws.send(JSON.stringify({msg:"connecting from react"}));
-        };
         this.ws.onmessage = (e) => {
         };
         this.db = database;
     }
-    publishEvent(event: any) {
+    publishEvent(id: ID, typ: Model, data: any) {
+        //const event : Event = {
+        const event = {
+            localEventID: 'local',
+            originEventID: 'origin',
+            modelType: typ,
+            modelID: id,
+            data: data,
+        };
         console.log('publishEvent', event);
         this.ws.send(JSON.stringify(event))
     }
