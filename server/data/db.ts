@@ -1,35 +1,60 @@
-import { ChangeSet } from '../models/changes';
+import {EventID, Event, EventIDToString} from 'common/models/event';
+import {Clock} from './clock';
 
 let levelup = require('levelup');
 let leveldown = require('leveldown');
 
-let db = levelup(leveldown('./lvl.db'));
-// Allow 2^32 changes per timestamp resolution
-let counter = 0;
-const MAX_COUNTER = 2^32-1;
+export class DB {
+    private db: any;
+    private replica: string;
+    private clock: Clock;
 
-const generateKey = (timestamp:number) => {
-    return timestamp.toString().padStart(20,'0') + '#' + counter.toString(16).padStart(2,'0');
-}
-const generateKeyPrefix = (timestamp:number) => {
-    return timestamp.toString().padStart(20,'0') + '#00'
-}
-
-export const addChanges = async (changes: any) => {
-    counter++;
-    if (counter > MAX_COUNTER) {
-        counter = 0;
+    constructor(replica: string, path: string) {
+        this.replica = replica;
+        this.db = levelup(leveldown(path));
+        this.clock = new Clock({
+            replica: this.replica,
+            counter: 0,
+        });
     }
-    const key = generateKey(changes.timestamp);
-    await db.put(key, JSON.stringify(changes), (err: any) => {
-      if (err) return console.log('error writing to db:', err);
-    });
-}
-export const getChanges = async (timestamp: number) => {
-    let data :ChangeSet[] = [];
-    const readable = db.createValueStream({gt: generateKeyPrefix(timestamp)});
-    for await( const value of  readable) {
-        data.push(JSON.parse(value));
+    public async init(): Promise<void> {
+        const lastID = await this.getLastEventID();
+        this.clock = new Clock(lastID);
     }
-    return data
+    public async addEvents(events: Event[]): Promise<void> {
+        for (let event of events) {
+            event.localEventID = this.clock.next();
+            event.originEventID = event.localEventID;
+            await this.db.put(EventIDToString(event.localEventID), JSON.stringify(event), (err: any) => {
+              if (err) return console.log('error writing to db:', err);
+            });
+        }
+    }
+    public async getEventsSince(eventID: EventID): Promise<Event[]> {
+        let data :Event[] = [];
+        const readable = this.db.createValueStream({gt: EventIDToString(eventID)});
+        for await( const value of readable) {
+            data.push(JSON.parse(value));
+        }
+        return data;
+    }
+    public async getAllEvents(): Promise<Event[]> {
+        let data :Event[] = [];
+        const readable = this.db.createValueStream()
+        for await( const value of readable) {
+            data.push(JSON.parse(value));
+        }
+        return data;
+    }
+    private async getLastEventID(): Promise<EventID> {
+        const readable = this.db.createValueStream({reverse: true})
+        for await( const value of readable) {
+            let event = JSON.parse(value);
+            return event.localEventID;
+        }
+        return {
+            replica: this.replica,
+            counter: 0,
+        }
+    }
 }

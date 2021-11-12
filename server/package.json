@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "nodemon index.ts"
+    "startA": "nodemon index.ts -- db/peerA 8888",
+    "startB": "nodemon index.ts -- db/peerB 8889"
   },
   "author": "",
   "license": "MIT",
@@ -16,9 +17,11 @@
     "levelup": "^5.0.1",
     "libp2p": "^0.31.7",
     "libp2p-gossipsub": "^0.11.0",
+    "libp2p-mdns": "^0.17.0",
     "libp2p-mplex": "^0.10.3",
     "libp2p-noise": "^3.0.0",
     "libp2p-tcp": "^0.15.4",
+    "peer-id": "^0.15.3",
     "ws": "^7.5.3"
   },
   "devDependencies": {
