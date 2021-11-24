@@ -1,55 +1,61 @@
 // For unexplained reasons the docs say this import must always be first.
 import 'react-native-gesture-handler';
 
-import React, {createContext, useState, useRef} from 'react';
-import { Appbar, Provider as PaperProvider } from 'react-native-paper';
-import {Button, SafeAreaView, ScrollView, StatusBar, Text, View} from 'react-native';
+import React from 'react';
+import { Provider as PaperProvider } from 'react-native-paper';
 import DatabaseProvider from '@nozbe/watermelondb/DatabaseProvider'
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-
-const Drawer = createDrawerNavigator();
+import { useColorScheme } from 'react-native-appearance';
 
 import database from './models/database';
-import Compendium from './components/compendium';
-import {Events, EventsProvider} from './components/events';
+import { PreferencesContext } from './context/preferences';
 
+import { Home } from './components/home';
+import { Compendium } from './components/compendium';
+import { Settings } from './components/settings';
+import { Events, EventsProvider } from './components/events';
+import { LightTheme, DarkTheme } from './components/theme';
 
-function HomeScreen({ navigation }) {
-  return (
-    <>
-    {/*<Bar/>*/}
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Welcome to dx</Text>
-    </View>
-    </>
-  );
-}
-
-const Bar = ({navigation}) => {
-    return (
-        <Appbar>
-            <Appbar.Action icon="menu" onPress={() => navigation.toggleDrawer()}/>
-        </Appbar>
-    );
-};
+const Drawer = createDrawerNavigator();
 
 const events = new Events(database);
 
 const App = () => {
+
+    // Get system light/dark theme mode
+    const colorScheme = useColorScheme();
+    const [theme, setTheme] = React.useState<'light' | 'dark'>(colorScheme === 'dark' ? 'dark' : 'light');
+    const toggleTheme = () => setTheme((theme) => (theme === 'light' ? 'dark' : 'light'));
+
+    const preferences = React.useMemo(
+        () => ({
+            toggleTheme,
+            theme,
+        }),
+        [toggleTheme, theme]
+    );
+
+
+    const themeConfig = theme === 'light' ? LightTheme : DarkTheme;
+
+
     return (
-        <PaperProvider>
-        <DatabaseProvider database={database}>
-        <EventsProvider events={events}>
-            <NavigationContainer>
-                <Drawer.Navigator>
-                    <Drawer.Screen name="Home" component={HomeScreen} />
-                    <Drawer.Screen name="Compendium" component={Compendium} />
-                </Drawer.Navigator>
-            </NavigationContainer>
-        </EventsProvider>
-        </DatabaseProvider>
-        </PaperProvider>
+        <PreferencesContext.Provider value={preferences}>
+            <PaperProvider theme={themeConfig}>
+                <DatabaseProvider database={database}>
+                    <EventsProvider events={events}>
+                        <NavigationContainer theme={themeConfig}>
+                            <Drawer.Navigator>
+                                <Drawer.Screen name="Home" component={Home} />
+                                <Drawer.Screen name="Compendium" component={Compendium} />
+                                <Drawer.Screen name="Settings" component={Settings} />
+                            </Drawer.Navigator>
+                        </NavigationContainer>
+                    </EventsProvider>
+                </DatabaseProvider>
+            </PaperProvider>
+        </PreferencesContext.Provider>
     );
 };
 
