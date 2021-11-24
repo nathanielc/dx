@@ -1,38 +1,102 @@
-import React, {FC} from 'react';
-import {Button, View, FlatList, Text} from 'react-native';
-import Spells from './spells';
-import Classes from './classes';
-import {compendiumStyles} from './styles';
-import { createStackNavigator } from '@react-navigation/stack';
-import { NavigationContainer } from '@react-navigation/native';
-import { Divider, List } from 'react-native-paper';
+import React from 'react';
+import { StyleSheet, View, Text } from 'react-native';
+import { List, FAB } from 'react-native-paper';
 
-const Stack = createStackNavigator();
+import { Spells } from './spells';
+import { Classes } from './classes';
+import { createStack } from './stack';
 
-const indexList = ['Spells', 'Classes'];
+const Stack = createStack();
 
-const Index = ({navigation}) => {
+
+const models: Array<{ name: string, meta: ModelScreens }> = [
+    { name: 'Spells', meta: Spells },
+    { name: 'Classes', meta: Classes },
+];
+
+
+const Index = ({ navigation }) => {
     return (
         <View>
-                {indexList.map((item) => 
-                    <List.Item
-                        key={item}
-                        title={item}
-                        onPress={() => navigation.navigate(item)}
-                    />
-                )}
+            {models.map((item) =>
+                <List.Item
+                    key={item.name}
+                    title={item.name}
+                    onPress={() => navigation.navigate('List', {
+                        model: item.name,
+                    })}
+                />
+            )}
         </View>
     );
 };
 
-const Compendium: FC<{onOpenCreator: () => void}> = ({onOpenCreator, navigation}) => {
-  return (
-    <Stack.Navigator>
-            <Stack.Screen name='Compendium' component={Index} />
-            <Stack.Screen name='Spells' component={Spells} />
-            <Stack.Screen name='Classes' component={Classes} />
-    </Stack.Navigator>
-  );
+interface ModelScreens {
+    List: any,
+    View: any,
+    Edit: any,
+}
+
+export const Compendium = () => {
+    return (
+        <Stack.Navigator
+            initialRouteName="Index"
+        >
+            <Stack.Group>
+                <Stack.Screen name='CompendiumIndex' options={{ title: 'Compendium' }} component={Index} />
+                <Stack.Screen name='List' component={ListScreen} />
+                <Stack.Screen name='View' component={ViewScreen} />
+            </Stack.Group>
+            <Stack.Group screenOptions={{ presentation: 'modal' }}>
+                <Stack.Screen name='Edit' component={EditScreen} />
+            </Stack.Group>
+        </Stack.Navigator>
+    );
 };
 
-export default Compendium;
+const ListScreen = ({ navigation, route }) => {
+    const { model } = route.params;
+    const meta = models.find((item) => item.name == model).meta;
+    const List = meta.List;
+    React.useLayoutEffect(
+        () => navigation.setOptions({ title: model }),
+        [navigation, model],
+    );
+    return (
+        <List navigation={navigation} />
+    );
+
+};
+const ViewScreen = ({ navigation, route }) => {
+    const { model, id, name } = route.params;
+    const meta = models.find((item) => item.name == model).meta;
+    const View = meta.View;
+    React.useLayoutEffect(
+        () => navigation.setOptions({ title: name }),
+        [navigation, name],
+    );
+    return (
+        <View navigation={navigation} id={id} />
+    );
+};
+const EditScreen = ({ navigation, route }) => {
+    const { model, id, name } = route.params;
+    const meta = models.find((item) => item.name == model).meta;
+    const Edit = meta.Edit;
+    React.useLayoutEffect(
+        () => navigation.setOptions({ title: name }),
+        [navigation, name],
+    );
+    return (
+        <Edit navigation={navigation} id={id} />
+    );
+};
+
+const styles = StyleSheet.create({
+    fab: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 0,
+    },
+})
