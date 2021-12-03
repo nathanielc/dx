@@ -184,9 +184,9 @@ const _SpellList = ({ navigation, database, spells }) => {
     );
 };
 
-const SpellList = (['id'], ({ database }) => ({
+const SpellList = withDatabase(withObservables([], ({ database }) => ({
     spells: database.collections.get('spells').query().observe(),
-})(_SpellList));
+}))(_SpellList));
 
 
 export const Spells = {
