@@ -4,12 +4,7 @@ import withObservables from '@nozbe/with-observables'
 import { withDatabase } from '@nozbe/watermelondb/DatabaseProvider'
 import { FAB, Text, TextInput, Button, List } from 'react-native-paper';
 import { useForm, Controller } from "react-hook-form";
-import { withEventsContext } from "./events";
-import { EditModal } from "./edit";
-import { Model } from 'common/models/event';
-import { Spell as CSpell } from 'common/models/spell';
-import { ModelListPage } from './compendium';
-import { createStack } from './stack';
+import { withEventsContext } from "../context/events";
 
 
 const _SpellItem = ({ navigation, spell }) => {
@@ -135,9 +130,6 @@ const SpellForm = ({ database, events, spell }) => {
         </View>
     );
 };
-
-
-const Stack = createStack();
 
 const _SpellList = ({ navigation, database, spells }) => {
     const onCreate = async () => {

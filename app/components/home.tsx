@@ -1,6 +1,6 @@
 
 import React, { FC } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { Button, View, StyleSheet, Text } from 'react-native';
 import { createStack } from './stack';
 import { useTheme } from '@react-navigation/native';
 

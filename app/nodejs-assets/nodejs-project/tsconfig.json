@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "rn-bridge": ["../../node_modules/nodejs-mobile-react-native/install/resources/nodejs-modules/builtin_modules/rn-bridge"]
+    }
+  }
+}
