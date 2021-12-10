@@ -2,53 +2,50 @@ const Libp2p = require('libp2p');
 const TCP = require('libp2p-tcp');
 const { NOISE } = require('libp2p-noise');
 const MPLEX = require('libp2p-mplex');
-const Gossipsub = require('libp2p-gossipsub')
+const MDNS = require('libp2p-mdns')
+const FLOODSUB = require('libp2p-floodsub')
 const PeerId = require('peer-id');
-const Mdns = require('libp2p-mdns')
-const fs = require('fs/promises');
+const fs = require('fs').promises;
 
-const multiaddr = require('multiaddr');
-
-const file = 'package.json';
-
-export const startPeer = async (path: string) => {
-    let peerId : any = null;
+const startPeer = async (path) => {
+    let peerId = null;
     try {
         const data = await fs.readFile(path);
-        console.log('existing peer ID found');
         peerId = await PeerId.createFromProtobuf(data);
+        console.log('existing peer ID found', peerId.toB58String());
     } catch {
-        console.log('no existing peer ID found, creating new peer ID');
-        peerId = await PeerId.create();
+        peerId = await PeerId.create({ keyType: 'Ed25519' });
+        console.log('no existing peer ID found, creating new peer ID', peerId.toB58String());
         await fs.writeFile(path, peerId.marshal())
     }
     const node = await Libp2p.create({
         peerId,
         addresses: {
             // add a listen address (localhost) to accept TCP connections on a random port
-            listen: ['/ip4/127.0.0.1/tcp/0']
+            listen: ['/ip4/0.0.0.0/tcp/0']
         },
         modules: {
             transport: [TCP],
             connEncryption: [NOISE],
             streamMuxer: [MPLEX],
-            pubsub: Gossipsub,
-            peerDiscovery: [Mdns],
+            peerDiscovery: [MDNS],
+            pubsub: FLOODSUB,
         }
     })
 
     // start libp2p
     await node.start()
-    console.log('libp2p has started')
 
     // print out listening addresses
     console.log('listening on addresses:')
-    node.multiaddrs.forEach((addr:any) => {
+    node.multiaddrs.forEach((addr) => {
         console.log(`${addr.toString()}/p2p/${node.peerId.toB58String()}`)
     })
-    node.on('peer:discovery', (otherID:any) => {
+    node.on('peer:discovery', (otherID) => {
         console.log(peerId.toB58String(), "discovered:", otherID.toB58String());
     })
 
     return node;
 }
+
+module.exports = { startPeer: startPeer };

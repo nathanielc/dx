@@ -1,21 +1,53 @@
-import {Database} from '@nozbe/watermelondb';
+import { Database, Model, appSchema } from '@nozbe/watermelondb';
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
 
-import schema from './schema';
-import migrations from './migrations';
+import Spell, { SpellSchema } from './spell'
+import Class, { ClassSchema } from './class'
+import Event, { EventSchema, EventType } from './event'
 
-import Spell from './spell'
-import Class from './class'
+import { schemaMigrations } from '@nozbe/watermelondb/Schema/migrations'
 
+export interface IModel extends Model {
+    reduce(event: EventType): void
+}
+
+const migrations = schemaMigrations({
+    migrations: [
+        // TODO(nathanielc): Create API for each model to define its own migrations and append them here.
+        //     {
+        //    // ⚠️ Set this to a number one larger than the current schema version
+        //    toVersion: 2,
+        //    steps: [
+        //      // See "Migrations API" for more details
+        //      createTable({
+        //        name: 'comments',
+        //        columns: [
+        //          { name: 'post_id', type: 'string', isIndexed: true },
+        //          { name: 'body', type: 'string' },
+        //        ],
+        //      }),
+        //    ],
+        //  },
+    ],
+});
+
+const schema = appSchema({
+    version: 1,
+    tables: [
+        SpellSchema,
+        ClassSchema,
+        EventSchema,
+    ],
+});
 const adapter = new SQLiteAdapter({
-  schema,
-  migrations,
+    schema,
+    migrations,
 });
 
 const database = new Database({
-  adapter,
-  modelClasses: [Spell, Class],
-  actionsEnabled: true,
+    adapter,
+    modelClasses: [Spell, Class, Event],
+    actionsEnabled: true,
 });
 
 export default database;
