@@ -2,16 +2,26 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import withObservables from '@nozbe/with-observables'
 import { withDatabase } from '@nozbe/watermelondb/DatabaseProvider'
-import { FAB, Text, TextInput, Button, List } from 'react-native-paper';
+import { Text, TextInput, Checkbox, Button, FAB, List } from 'react-native-paper';
 import { useForm, Controller } from "react-hook-form";
 import { withEventsContext } from "../context/events";
 
-
 const _SpellItem = ({ navigation, spell }) => {
+    let components = "";
+    if (spell.is_verbal) {
+        components += "V,";
+    }
+    if (spell.is_somatic) {
+        components += "S,";
+    }
+    if (spell.is_material) {
+        components += "M,";
+    }
+    components = "(" + components.substring(0, components.length - 1) + ")";
     return (
         <List.Item
             title={spell.name}
-            description={spell.school}
+            description={components}
             onPress={() => {
                 navigation.navigate('View', {
                     model: 'Spells',
@@ -44,6 +54,7 @@ const _SpellView = ({ navigation, spell }) => {
         </View>
     );
 };
+
 const SpellView = withDatabase(withObservables(['id'], ({ id, database }) => ({
     spell: database.get('spells').findAndObserve(id)
 }))(_SpellView));
@@ -57,6 +68,7 @@ const _SpellEdit = withEventsContext(({ spell }) => {
         </View>
     );
 });
+
 const SpellEdit = withDatabase(withObservables(['id'], ({ id, database }) => ({
     spell: database.get('spells').findAndObserve(id)
 }))(_SpellEdit));
@@ -68,11 +80,13 @@ const SpellForm = ({ database, events, spell }) => {
     const { control, handleSubmit, formState: { errors } } = useForm();
     const onSubmit = async (data) => {
         data.id = spell.id;
+        console.log("formdata", data)
         //TODO make events perform database updates and leave the forms unaware of the database
         await database.action(async () => {
             await spell.update((spell) => {
                 spell.name = data.name;
                 spell.school = data.school;
+                spell.is_verbal = data.is_verbal == "checked";
             });
         });
         const spellModel: CSpell = {
@@ -83,7 +97,6 @@ const SpellForm = ({ database, events, spell }) => {
         console.log("publishing event", spellModel)
         events.publishEvent(spellModel.id, Model.Spell, spellModel);
     };
-
 
 
     return (
@@ -126,9 +139,24 @@ const SpellForm = ({ database, events, spell }) => {
                 name="school"
                 defaultValue={spell.school}
             />
+            <Controller
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                    <>
+                        <Checkbox
+                            status={value}
+                            disabled={false}
+                            onPress={onChange}
+                        />
+                        <Text>Verbal</Text>
+                    </>
+                )}
+                name="is_verbal"
+                defaultValue={spell.is_verbal ? "checked" : "unchecked"}
+            />
             <Button title="Submit" onPress={handleSubmit(onSubmit)}>Save</Button>
         </View>
-    );
+    )
 };
 
 const _SpellList = ({ navigation, database, spells }) => {
@@ -137,9 +165,10 @@ const _SpellList = ({ navigation, database, spells }) => {
             await database.get('spells').create((spell) => {
                 spell.name = 'New Spell'
                 spell.school = 'Lorem ipsum...'
+                spell.is_verbal = true
             })
         })
-    }
+    };
     return (
         <>
             {spells.map((spell) =>
@@ -153,8 +182,8 @@ const _SpellList = ({ navigation, database, spells }) => {
             />
         </>
     );
-
 };
+
 const SpellList = withDatabase(withObservables([], ({ database }) => ({
     spells: database.collections.get('spells').query().observe(),
 }))(_SpellList));
@@ -172,4 +201,4 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
     },
-})
+});
